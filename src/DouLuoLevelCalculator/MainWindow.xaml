@@ -1,0 +1,60 @@
+﻿<Window x:Class="DouLuoLevelCalculator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DouLuoLevelCalculator"
+        xmlns:vm="clr-namespace:DouLuoLevelCalculator.ViewModels"
+        Title="斗罗等级计算器" Height="600" Width="800"
+        FontSize="13"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignData Type=vm:MainViewModel, IsDesignTimeCreatable=False}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="起始年龄" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBox Grid.Row="1" x:Name="TxtInitAge" VerticalContentAlignment="Center" Margin="0,0,4,0" Height="25" VerticalAlignment="Bottom" Text="{Binding InitAge}"/>
+            <TextBlock Grid.Column="1" Text="起始等级" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtInitLevel" VerticalContentAlignment="Center" Margin="4,0" Height="25" VerticalAlignment="Bottom" Text="{Binding InitLevel}"/>
+            <TextBlock Grid.Column="2" Text="起始日期" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <DatePicker Grid.Row="1" Grid.Column="2" x:Name="DatePickerInitMs" Margin="4,0" VerticalContentAlignment="Center" VerticalAlignment="Bottom" Height="25" SelectedDate="{Binding InitDate}"/>
+            <TextBlock Grid.Column="3" Text="先天魂力" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="3" x:Name="TxtNaturalSp" VerticalContentAlignment="Center" Margin="4,0" Height="25" VerticalAlignment="Bottom" Text="{Binding NaturalSp}"/>
+            <TextBlock Grid.Column="4" Text="修炼速率" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="4" x:Name="TxtSpeedRate"  VerticalContentAlignment="Center" Margin="4,0" Height="25" VerticalAlignment="Bottom" Text="{Binding SpeedRate}"/>
+            <TextBlock Grid.Column="5" Text="95级后修炼速率" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="5" x:Name="TxtSpeedRateAter95"  VerticalContentAlignment="Center" Margin="4,0,0,0" Height="25" VerticalAlignment="Bottom" Text="{Binding SpeedRateAfter95}"/>
+            <StackPanel Grid.Row="1" Grid.Column="6" Orientation="Horizontal">
+                <Button x:Name="BtnCompute" Width="100" Height="30" Content="计算" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ComputeCommand}"/>
+                <Button x:Name="BtnReset" Width="100" Height="30" Content="重置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ResetCommand}"/>
+            </StackPanel>
+        </Grid>
+        <DataGrid Grid.Row="1" ItemsSource="{Binding LevelStatuses}" AutoGenerateColumns="False" ClipboardCopyMode="IncludeHeader" CopyingRowClipboardContent="DataGrid_CopyingRowClipboardContent">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="等级" IsReadOnly="True" Binding="{Binding Level, StringFormat={}{0}级}"/>
+                <DataGridTextColumn Header="日期" IsReadOnly="True" Binding="{Binding Date, StringFormat={}{0:yyyy年MM月}}"/>
+                <DataGridTextColumn Header="年龄" IsReadOnly="True" Binding="{Binding Age, StringFormat={}{0}岁}"/>
+                <DataGridTextColumn Header="魂环年限" Binding="{Binding SoulCircle, StringFormat={}{0}年}"/>
+                <DataGridTextColumn Header="魂环附加等级" IsReadOnly="True" Binding="{Binding SoulCircleAddLevel, StringFormat={}{0}级}"/>
+                <DataGridTextColumn Header="额外附加等级" Binding="{Binding ExLevel, StringFormat={}{0}级}"/>
+                <DataGridTextColumn Header="当前修炼速度（级/年）" IsReadOnly="True" Binding="{Binding TrainingSpeed, StringFormat={}{0}级/年}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
