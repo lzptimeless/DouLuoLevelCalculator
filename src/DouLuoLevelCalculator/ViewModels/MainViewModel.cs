@@ -119,14 +119,15 @@ namespace DouLuoLevelCalculator.ViewModels
 
             List<LevelStatus> oldStatuses = new List<LevelStatus>(LevelStatuses);
             LevelStatuses.Clear();
-            LevelStatuses.Add(new LevelStatus { 
-                Date = initDate, 
-                Age = initAge, 
-                Level = initLevel, 
-                TrainingSpeed = Math.Round(GetTrainingSpeedFromInitSoulPower(naturalSp, initLevel, speedRate), 4), 
+            LevelStatuses.Add(new LevelStatus
+            {
+                Date = initDate,
+                Age = initAge,
+                Level = initLevel,
+                TrainingSpeed = Math.Round(GetTrainingSpeedFromInitSoulPower(naturalSp, initLevel, speedRate), 4),
                 ExLevel = GetExLevel(oldStatuses, initLevel),
                 SoulCircle = GetSoulCircle(oldStatuses, initLevel),
-                SoulCircleAddLevel = GetSoulCircleAddLevel(oldStatuses, initLevel)
+                SoulCircleAddLevel = GetSoulCircleAddLevel(GetSoulCircle(oldStatuses, initLevel), initLevel)
             });
 
             while (currentLevel < 100)
@@ -156,14 +157,15 @@ namespace DouLuoLevelCalculator.ViewModels
                 DateTime nextDate = currentDate.AddMonths(toNextLevelMonths);
                 int nextAge = initAge + nextDate.Year - initDate.Year;
                 double nextSoulCircle = GetSoulCircle(oldStatuses, nextLevel);
-                double nextSoulCircleAddedLevel = GetSoulCircleAddLevel(oldStatuses, nextLevel);
+                double nextSoulCircleAddedLevel = GetSoulCircleAddLevel(nextSoulCircle, nextLevel);
                 double nextExLevel = GetExLevel(oldStatuses, nextLevel);
                 double nextSpeed = GetTrainingSpeedFromInitSoulPower(naturalSp, nextLevel + nextSoulCircleAddedLevel + nextExLevel, speedRate);
-                var nextLevelStatus = new LevelStatus { 
-                    Date = nextDate, 
-                    Age = nextAge, 
-                    Level = Math.Round(nextLevel, 1), 
-                    TrainingSpeed = Math.Round(nextSpeed, 4), 
+                var nextLevelStatus = new LevelStatus
+                {
+                    Date = nextDate,
+                    Age = nextAge,
+                    Level = Math.Round(nextLevel, 1),
+                    TrainingSpeed = Math.Round(nextSpeed, 4),
                     ExLevel = nextExLevel,
                     SoulCircle = nextSoulCircle,
                     SoulCircleAddLevel = nextSoulCircleAddedLevel
@@ -201,37 +203,53 @@ namespace DouLuoLevelCalculator.ViewModels
         private static double GetSoulCircle(IEnumerable<LevelStatus> items, double level)
         {
             var item = items.FirstOrDefault(x => x.Level == level);
-            if (item == null) return 0;
-            else return item.SoulCircle;
+            if (item != null)
+            {
+                return item.SoulCircle;
+            }
+            else
+            {
+                // 正常吸收的魂环等级
+                switch (level)
+                {
+                    case 10: return 400;// 大部分魂师第一魂环可以吸收四百二十三年以下
+                    case 20: return 700;// 第二魂环可以吸收七百六十四年以
+                    case 30: return 1500;// 大部分魂师第三魂环可以吸收一千七百六十年以下
+                    case 40: return 4500;// 第四魂环可以吸收五千年以下，唐三第四环吸收万年魂环提升了一级
+                    case 50: return 10000;// 大部分魂师第五魂环可以吸收一万两千年以下
+                    case 60: return 20000;// 第六魂环可以吸收两万年以下
+                    case 70: return 45000;// 第七魂环可以吸收五万年以下
+                    case 80: return 60000;// 第八魂环可以吸收大部分万年魂环
+                    case 90: return 80000;
+                    default: return 0;
+                }
+            }
         }
 
         /// <summary>
-        /// 获取魂环附加等级
+        /// 获取魂环对魂师的附加等级
         /// </summary>
-        /// <param name="items">旧的等级提升步骤</param>
+        /// <param name="soulCircle">魂环等级</param>
         /// <param name="level">当前等级</param>
         /// <returns></returns>
-        private static double GetSoulCircleAddLevel(IEnumerable<LevelStatus> items, double level)
+        private static double GetSoulCircleAddLevel(double soulCircle, double level)
         {
-            var item = items.FirstOrDefault(x => x.Level == level);
-            if (item == null) return 0;
-
-            // 标准的魂环吸收年限，这里为了方便将数据取整，吸收魂环年限达到标准年限可以使魂力额外提升一级，小说中主角团都是这样
+            double sc = soulCircle;
+            // 吸收魂环年限达到标准年限可以使魂力额外提升一级，小说中主角团都是这样
             var standardSC = new List<double>
             {
-                400, // 大部分魂师第一魂环可以吸收四百二十三年以下
-                760, // 第二魂环可以吸收七百六十四年以
-                1760, // 大部分魂师第三魂环可以吸收一千七百六十年以下
-                5000, // 第四魂环可以吸收五千年以下，唐三第四环吸收万年魂环提升了一级
-                12000, // 大部分魂师第五魂环可以吸收一万两千年以下
-                20000, // 第六魂环可以吸收两万年以下
-                50000, // 第七魂环可以吸收五万年以下
-                80000, // 第八魂环可以吸收大部分万年魂环
-                90000,
+                300, // 大部分魂师第一魂环可以吸收四百二十三年以下
+                500, // 第二魂环可以吸收七百六十四年以
+                1400, // 大部分魂师第三魂环可以吸收一千七百六十年以下
+                4000, // 第四魂环可以吸收五千年以下，唐三第四环吸收万年魂环提升了一级
+                10000, // 大部分魂师第五魂环可以吸收一万两千年以下
+                15000, // 第六魂环可以吸收两万年以下
+                40000, // 第七魂环可以吸收五万年以下
+                60000, // 第八魂环可以吸收大部分万年魂环
+                80000,
                 100000
             };
 
-            double sc = item.SoulCircle;
             if (level <= 60)
             {
                 // 从10级到60级
