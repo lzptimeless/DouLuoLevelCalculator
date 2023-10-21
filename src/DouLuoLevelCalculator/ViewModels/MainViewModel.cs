@@ -135,6 +135,11 @@ namespace DouLuoLevelCalculator.ViewModels
                 var lastLevelStatus = LevelStatuses.Last()!;
                 double realLevel = currentLevel + lastLevelStatus.SoulCircleAddLevel + lastLevelStatus.ExLevel;
                 double incrementPerMonth = GetTrainingSpeedFromInitSoulPower(naturalSp, realLevel, speedRate) / 12;
+                if (incrementPerMonth <= 0)
+                {
+                    break;
+                }
+
                 double nextLevel;
 
                 if (Math.Floor(realLevel / 10) - Math.Floor(currentLevel / 10) >= 1)
@@ -303,6 +308,7 @@ namespace DouLuoLevelCalculator.ViewModels
         {
             if (naturalSp <= 0) return 0;
 
+            // 计算不考虑潜力限制的极限修炼速度
             double speed;
             if (level < 30) speed = GetFullSpeed(naturalSp); // 30级之前修炼速度最快
             else if (level < 70) speed = GetFullSpeed(naturalSp) * 0.8f; // 30级之后修炼速度有所减低，大概为之前的0.8
@@ -311,29 +317,48 @@ namespace DouLuoLevelCalculator.ViewModels
             else if (level < 99) speed = GetFullSpeed(naturalSp) * 0.8f * 0.5f * 0.5f * 0.1f; // 95级之后修炼速度为之前的十分之一
             else speed = GetFullSpeed(naturalSp) * 0.8f * 0.5f * 0.5f * 0.1f * 0.2f; // 99级到100级速度为之前的五分之一
 
+            // 再加上剩余潜力的系数
+            speed = speed * GetRemainPotentialRate(naturalSp, level);
+
+            // 再加上个人努力系数
             if (level < 95) speed = speed * speedRate;
             else speed = speed * _speedRateAfter95;
 
             return speed;
         }
 
+        private static double GetRemainPotentialRate(double naturalSp, double level)
+        {
+            // 根据小说潜力大概等于先天魂力x10
+            double potentialValue = naturalSp * 10;
+
+            // 潜力耗尽
+            if (potentialValue <= level) return 0;
+
+            // 因为Compute函数的计算结果为每十级一次，所以这里取*5级来计算这十级的平均值
+            double tmpLevel = Math.Floor(level / 10) * 10 + 5;
+
+            // 分子加十分之一修正一下，不然最后十级太慢了
+            return Math.Max(1, (potentialValue * 1.5 - tmpLevel) / potentialValue);
+        }
+
         /// <summary>
-        /// 根据先天魂力获得初始修炼速度（级/年）
+        /// 根据先天魂力获得初始修炼速度（级/年），这个速度是先天魂力对应的极限修炼速度
         /// </summary>
         /// <param name="naturalSp">先天魂力</param>
         /// <returns></returns>
         private static double GetFullSpeed(double naturalSp)
         {
-            if (naturalSp <= 1) return 0.5f;
-            else if (naturalSp <= 2) return 1;
-            else if (naturalSp <= 3) return 1.5f;
-            else if (naturalSp <= 4) return 2;
-            else if (naturalSp <= 5) return 2.5f;
-            else if (naturalSp <= 6) return 3;
-            else if (naturalSp <= 7) return 3.5f; // 朱竹青初次登场11岁27级，修炼速度为4，以她先天7级的魂力来看，已经超过了正常努力的范畴
-            else if (naturalSp <= 8) return 4;
-            else if (naturalSp <= 9) return 4.5f;
-            else return 5; // 唐三30级之前修炼速度为3.33，但他需要上课、打铁、陪小舞
+            if (naturalSp <= 1) return 0.25;
+            else if (naturalSp <= 2) return 0.5;
+            else if (naturalSp <= 3) return 1;
+            else if (naturalSp <= 4) return 1.5;
+            else if (naturalSp <= 5) return 2;
+            else if (naturalSp <= 6) return 2.5;
+            else if (naturalSp <= 7) return 3; // 朱竹青初次登场12岁27级，初始等级7，魂环增加2，修炼速度为3，以朱竹清的努力程度来看应该算极限了
+            else if (naturalSp <= 8) return 3.5;
+            else if (naturalSp <= 9) return 4;
+            else return 4.5; // 唐三30级之前修炼速度慢是因为他需要上课、打铁、陪小舞
         }
         #endregion
     }
