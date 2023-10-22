@@ -141,7 +141,6 @@ namespace DouLuoLevelCalculator.ViewModels
                 }
 
                 double nextLevel;
-
                 if (Math.Floor(realLevel / 10) - Math.Floor(currentLevel / 10) >= 1)
                 {
                     // 限制等级一次提升不超过一个大级
@@ -150,9 +149,9 @@ namespace DouLuoLevelCalculator.ViewModels
                 else
                 {
                     // 计算将要提升到的下一个大级
-                    if (realLevel < 90) nextLevel = (Math.Floor(realLevel / 10) + 1) * 10;
-                    else if (realLevel < 95) nextLevel = 95;
-                    else if (realLevel < 99) nextLevel = realLevel + 1;
+                    //if (realLevel < 90) nextLevel = (Math.Floor(realLevel / 10) + 1) * 10;
+                    //else if (realLevel < 95) nextLevel = 95;
+                    if (realLevel < 99) nextLevel = realLevel + 1;
                     else if (realLevel < 99.8) nextLevel = Math.Min(100, realLevel + 0.4);
                     else if (realLevel < 100) nextLevel = 100;
                     else nextLevel = realLevel + 10;
@@ -207,6 +206,12 @@ namespace DouLuoLevelCalculator.ViewModels
         /// <returns></returns>
         private static double GetSoulCircle(IEnumerable<LevelStatus> items, double level)
         {
+            if (((int)level) % 10 != 0)
+            {
+                // 只有10的倍数时才有魂环
+                return 0;
+            }
+
             var item = items.FirstOrDefault(x => x.Level == level);
             if (item != null)
             {
@@ -298,7 +303,7 @@ namespace DouLuoLevelCalculator.ViewModels
         }
 
         /// <summary>
-        /// 根据先天魂力和当前等级获得当前修炼速度
+        /// 根据先天魂力和当前等级获得当前修炼速度（级/年）
         /// </summary>
         /// <param name="naturalSp">先天魂力</param>
         /// <param name="level">当前等级</param>
@@ -317,7 +322,7 @@ namespace DouLuoLevelCalculator.ViewModels
             else if (level < 99) speed = GetFullSpeed(naturalSp) * 0.8f * 0.5f * 0.5f * 0.1f; // 95级之后修炼速度为之前的十分之一
             else speed = GetFullSpeed(naturalSp) * 0.8f * 0.5f * 0.5f * 0.1f * 0.2f; // 99级到100级速度为之前的五分之一
 
-            // 再加上剩余潜力的系数
+            // 再加上潜力消耗的影响
             speed = speed * GetRemainPotentialRate(naturalSp, level);
 
             // 再加上个人努力系数
@@ -332,14 +337,10 @@ namespace DouLuoLevelCalculator.ViewModels
             // 根据小说潜力大概等于先天魂力x10
             double potentialValue = naturalSp * 10;
 
-            // 潜力耗尽
-            if (potentialValue <= level) return 0;
+            // 对potentialValue乘以系数修正一下再计算最终值，表示潜力还剩20%时修炼速度会开始变慢
+            double result = (potentialValue * 1.8 - level) / potentialValue;
 
-            // 因为Compute函数的计算结果为每十级一次，所以这里取*5级来计算这十级的平均值
-            double tmpLevel = Math.Floor(level / 10) * 10 + 5;
-
-            // 分子加十分之一修正一下，不然最后十级太慢了
-            return Math.Max(1, (potentialValue * 1.5 - tmpLevel) / potentialValue);
+            return Math.Max(0, Math.Min(1, result));
         }
 
         /// <summary>
