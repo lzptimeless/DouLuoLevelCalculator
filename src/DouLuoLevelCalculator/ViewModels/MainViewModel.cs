@@ -149,8 +149,6 @@ namespace DouLuoLevelCalculator.ViewModels
                 else
                 {
                     // 计算将要提升到的下一个大级
-                    //if (realLevel < 90) nextLevel = (Math.Floor(realLevel / 10) + 1) * 10;
-                    //else if (realLevel < 95) nextLevel = 95;
                     if (realLevel < 99) nextLevel = realLevel + 1;
                     else if (realLevel < 99.8) nextLevel = Math.Min(100, realLevel + 0.4);
                     else if (realLevel < 100) nextLevel = 100;
@@ -336,11 +334,16 @@ namespace DouLuoLevelCalculator.ViewModels
         {
             // 根据小说潜力大概等于先天魂力x10
             double potentialValue = naturalSp * 10;
-
-            // 对potentialValue乘以系数修正一下再计算最终值，表示潜力还剩20%时修炼速度会开始变慢
-            double result = (potentialValue * 1.8 - level) / potentialValue;
-
-            return Math.Max(0, Math.Min(1, result));
+            if (potentialValue - 10 > level)
+            {
+                // 潜力剩余大于10级时修炼速度不受影响
+                return 1;
+            }
+            else
+            {
+                // 潜力剩余小于10级时修炼速度逐渐变慢
+                return Math.Max(0, (potentialValue + 5 - level) / 15);
+            }
         }
 
         /// <summary>
