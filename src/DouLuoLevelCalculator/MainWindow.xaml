@@ -48,7 +48,7 @@
         <DataGrid Grid.Row="1" ItemsSource="{Binding LevelStatuses}" AutoGenerateColumns="False" ClipboardCopyMode="IncludeHeader" CopyingRowClipboardContent="DataGrid_CopyingRowClipboardContent">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="等级" IsReadOnly="True" Binding="{Binding Level, StringFormat={}{0}级}"/>
-                <DataGridTextColumn Header="日期" IsReadOnly="True" Binding="{Binding Date, StringFormat={}{0:yyyy年MM月}}"/>
+                <DataGridTextColumn Header="日期" IsReadOnly="True" Binding="{Binding Date, StringFormat={}{0:yyyy年MM月dd日}}"/>
                 <DataGridTextColumn Header="年龄" IsReadOnly="True" Binding="{Binding Age, StringFormat={}{0}岁}"/>
                 <DataGridTextColumn Header="魂环数值" Binding="{Binding SoulCircle, StringFormat={}{0}年}"/>
                 <DataGridTextColumn Header="魂环附加等级" IsReadOnly="True" Binding="{Binding SoulCircleAddLevel, StringFormat={}{0}级}"/>

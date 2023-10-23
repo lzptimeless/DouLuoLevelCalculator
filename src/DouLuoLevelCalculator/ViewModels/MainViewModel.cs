@@ -52,7 +52,7 @@ namespace DouLuoLevelCalculator.ViewModels
 
         private double _speedRate = 1;
         /// <summary>
-        /// 相对于正常努力修炼的速度的比率，默认为1
+        /// 相对于正常努力修炼的速度的比率，有些懈怠0.7，中规中矩0.8，努力0.9，非常努力1，默认1
         /// </summary>
         public double SpeedRate
         {
@@ -149,8 +149,8 @@ namespace DouLuoLevelCalculator.ViewModels
                 }
                 else
                 {
-                    double incrementPerMonth = GetTrainingSpeedFromInitSoulPower(naturalSp, realLevel, speedRate) / 12;
-                    if (incrementPerMonth <= 0)
+                    double incrementPerDay = GetTrainingSpeedFromInitSoulPower(naturalSp, realLevel, speedRate) / 365;
+                    if (incrementPerDay <= 0)
                     {
                         break;
                     }
@@ -162,8 +162,8 @@ namespace DouLuoLevelCalculator.ViewModels
                     else nextLevel = realLevel + 10;
 
                     // 计算提升到下一个等级需要的修炼时间
-                    int toNextLevelMonths = (int)Math.Round(Math.Max(0, nextLevel - realLevel) / incrementPerMonth);
-                    nextDate = currentDate.AddMonths(toNextLevelMonths);
+                    int toNextLevelDays = (int)Math.Round(Math.Max(0, nextLevel - realLevel) / incrementPerDay);
+                    nextDate = currentDate.AddDays(toNextLevelDays);
                 }
 
                 double nextSoulCircle = GetSoulCircle(oldStatuses, nextLevel);
