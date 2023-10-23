@@ -50,8 +50,9 @@
                 <DataGridTextColumn Header="等级" IsReadOnly="True" Binding="{Binding Level, StringFormat={}{0}级}"/>
                 <DataGridTextColumn Header="日期" IsReadOnly="True" Binding="{Binding Date, StringFormat={}{0:yyyy年MM月}}"/>
                 <DataGridTextColumn Header="年龄" IsReadOnly="True" Binding="{Binding Age, StringFormat={}{0}岁}"/>
-                <DataGridTextColumn Header="魂环年限" Binding="{Binding SoulCircle, StringFormat={}{0}年}"/>
+                <DataGridTextColumn Header="魂环数值" Binding="{Binding SoulCircle, StringFormat={}{0}年}"/>
                 <DataGridTextColumn Header="魂环附加等级" IsReadOnly="True" Binding="{Binding SoulCircleAddLevel, StringFormat={}{0}级}"/>
+                <DataGridTextColumn Header="剩余魂环能量" IsReadOnly="True" Binding="{Binding RemainSoulCircle, StringFormat={}{0}年}"/>
                 <DataGridTextColumn Header="额外附加等级" Binding="{Binding ExLevel, StringFormat={}{0}级}"/>
                 <DataGridTextColumn Header="当前修炼速度（级/年）" IsReadOnly="True" Binding="{Binding TrainingSpeed, StringFormat={}{0}级/年}"/>
             </DataGrid.Columns>

@@ -123,7 +123,6 @@ namespace DouLuoLevelCalculator.ViewModels
             var addResult = GetSoulCircleAddLevel(soulCircle, currentLevel);
             double remainSoulCircle = addResult.RemainSoulCircleValue;
 
-
             LevelStatuses.Add(new LevelStatus
             {
                 Date = currentDate,
@@ -140,26 +139,13 @@ namespace DouLuoLevelCalculator.ViewModels
             {
                 var lastLevelStatus = LevelStatuses.Last()!;
                 double realLevel = currentLevel + lastLevelStatus.SoulCircleAddLevel + lastLevelStatus.ExLevel;
-                if (realLevel >= (Math.Floor(realLevel / 10) + 1) * 10)
+                double nextLevel;
+                DateTime nextDate;
+                if (realLevel >= (Math.Floor(lastLevelStatus.Level / 10) + 1) * 10)
                 {
-                    // 吸收魂环提升的等级和附加等级超过了当前的大阶
-                    double nextSoulCircle = GetSoulCircle(oldStatuses, realLevel);
-                    var tmpAddResult = GetSoulCircleAddLevel(nextSoulCircle, realLevel);
-                    double nextExLevel = GetExLevel(oldStatuses, realLevel);
-                    double nextSpeed = GetTrainingSpeedFromInitSoulPower(naturalSp, realLevel + tmpAddResult.IncrementLevel + nextExLevel, speedRate);
-                    var nextLevelStatus = new LevelStatus
-                    {
-                        Date = currentDate,
-                        Age = initAge + currentDate.Year - initDate.Year,
-                        Level = realLevel,
-                        TrainingSpeed = nextSpeed,
-                        ExLevel = nextExLevel,
-                        SoulCircle = nextSoulCircle,
-                        SoulCircleAddLevel = tmpAddResult.IncrementLevel,
-                        RemainSoulCircle = tmpAddResult.RemainSoulCircleValue
-                    };
-                    LevelStatuses.Add(nextLevelStatus);
-                    currentLevel = realLevel;
+                    // 吸收魂环提升的等级和附加等级超过了当前的大阶，这种情况下不用修炼直接吸收魂环
+                    nextLevel = realLevel;
+                    nextDate = currentDate;
                 }
                 else
                 {
@@ -169,43 +155,36 @@ namespace DouLuoLevelCalculator.ViewModels
                         break;
                     }
 
-                    double nextLevel;
-                    if (Math.Floor(realLevel / 10) - Math.Floor(currentLevel / 10) >= 1)
-                    {
-                        // 限制等级一次提升不超过一个大级
-                        nextLevel = (Math.Floor(currentLevel / 10) + 1) * 10;
-                    }
-                    else
-                    {
-                        // 计算将要提升到的下一个大级
-                        if (realLevel < 99) nextLevel = realLevel + 1;
-                        else if (realLevel < 99.8) nextLevel = Math.Min(100, realLevel + 0.4);
-                        else if (realLevel < 100) nextLevel = 100;
-                        else nextLevel = realLevel + 10;
-                    }
+                    // 计算将要提升到的下一个等级
+                    if (realLevel < 99) nextLevel = realLevel + 1;
+                    else if (realLevel < 99.8) nextLevel = Math.Min(100, realLevel + 0.4);
+                    else if (realLevel < 100) nextLevel = 100;
+                    else nextLevel = realLevel + 10;
 
+                    // 计算提升到下一个等级需要的修炼时间
                     int toNextLevelMonths = (int)Math.Round(Math.Max(0, nextLevel - realLevel) / incrementPerMonth);
-                    DateTime nextDate = currentDate.AddMonths(toNextLevelMonths);
-                    int nextAge = initAge + nextDate.Year - initDate.Year;
-                    double nextSoulCircle = GetSoulCircle(oldStatuses, nextLevel);
-                    var tmpAddResult = GetSoulCircleAddLevel(nextSoulCircle, nextLevel);
-                    double nextExLevel = GetExLevel(oldStatuses, nextLevel);
-                    double nextSpeed = GetTrainingSpeedFromInitSoulPower(naturalSp, nextLevel + tmpAddResult.IncrementLevel + nextExLevel, speedRate);
-                    var nextLevelStatus = new LevelStatus
-                    {
-                        Date = nextDate,
-                        Age = nextAge,
-                        Level = Math.Round(nextLevel, 1),
-                        TrainingSpeed = Math.Round(nextSpeed, 4),
-                        ExLevel = nextExLevel,
-                        SoulCircle = nextSoulCircle,
-                        SoulCircleAddLevel = tmpAddResult.IncrementLevel,
-                        RemainSoulCircle = tmpAddResult.RemainSoulCircleValue
-                    };
-                    LevelStatuses.Add(nextLevelStatus);
-                    currentDate = nextDate;
-                    currentLevel = nextLevel;
+                    nextDate = currentDate.AddMonths(toNextLevelMonths);
                 }
+
+                double nextSoulCircle = GetSoulCircle(oldStatuses, nextLevel);
+                var tmpAddResult = GetSoulCircleAddLevel(nextSoulCircle + lastLevelStatus.RemainSoulCircle, nextLevel);
+                double nextExLevel = GetExLevel(oldStatuses, nextLevel);
+                double nextSpeed = GetTrainingSpeedFromInitSoulPower(naturalSp, nextLevel + tmpAddResult.IncrementLevel + nextExLevel, speedRate);
+                int nextAge = initAge + nextDate.Year - initDate.Year;
+                var nextLevelStatus = new LevelStatus
+                {
+                    Date = nextDate,
+                    Age = nextAge,
+                    Level = Math.Round(nextLevel, 1),
+                    TrainingSpeed = Math.Round(nextSpeed, 4),
+                    ExLevel = nextExLevel,
+                    SoulCircle = nextSoulCircle,
+                    SoulCircleAddLevel = tmpAddResult.IncrementLevel,
+                    RemainSoulCircle = tmpAddResult.RemainSoulCircleValue
+                };
+                LevelStatuses.Add(nextLevelStatus);
+                currentDate = nextDate;
+                currentLevel = nextLevel;
             }
         }
 
@@ -330,7 +309,7 @@ namespace DouLuoLevelCalculator.ViewModels
             }
 
             double maxIncrementLevel = (Math.Floor(level / 10) + 1) * 10 - level;
-            double incrementLevel = Math.Min(maxIncrementLevel, soulCircle / valuePerLevel);
+            double incrementLevel = Math.Floor(Math.Min(maxIncrementLevel, soulCircle / valuePerLevel));
             double remainSoulCircleValue = soulCircle - incrementLevel * valuePerLevel;
             return (incrementLevel, remainSoulCircleValue);
         }
