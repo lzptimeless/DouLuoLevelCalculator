@@ -114,68 +114,98 @@ namespace DouLuoLevelCalculator.ViewModels
         /// <param name="speedRate">相对于正常努力修炼速度的比率</param>
         public void Compute(int initAge, double initLevel, DateTime initDate, double naturalSp, double speedRate)
         {
-            DateTime currentDate = initDate;
-            double currentLevel = initLevel;
-
             List<LevelStatus> oldStatuses = new List<LevelStatus>(LevelStatuses);
             LevelStatuses.Clear();
+
+            DateTime currentDate = initDate;
+            double currentLevel = initLevel;
+            double soulCircle = GetSoulCircle(oldStatuses, currentLevel);
+            var addResult = GetSoulCircleAddLevel(soulCircle, currentLevel);
+            double remainSoulCircle = addResult.RemainSoulCircleValue;
+
+
             LevelStatuses.Add(new LevelStatus
             {
-                Date = initDate,
+                Date = currentDate,
                 Age = initAge,
-                Level = initLevel,
-                TrainingSpeed = Math.Round(GetTrainingSpeedFromInitSoulPower(naturalSp, initLevel, speedRate), 4),
-                ExLevel = GetExLevel(oldStatuses, initLevel),
-                SoulCircle = GetSoulCircle(oldStatuses, initLevel),
-                SoulCircleAddLevel = GetSoulCircleAddLevel(GetSoulCircle(oldStatuses, initLevel), initLevel)
+                Level = currentLevel,
+                TrainingSpeed = Math.Round(GetTrainingSpeedFromInitSoulPower(naturalSp, currentLevel, speedRate), 4),
+                ExLevel = GetExLevel(oldStatuses, currentLevel),
+                SoulCircle = soulCircle,
+                SoulCircleAddLevel = addResult.IncrementLevel,
+                RemainSoulCircle = remainSoulCircle
             });
 
             while (currentLevel < 100)
             {
                 var lastLevelStatus = LevelStatuses.Last()!;
                 double realLevel = currentLevel + lastLevelStatus.SoulCircleAddLevel + lastLevelStatus.ExLevel;
-                double incrementPerMonth = GetTrainingSpeedFromInitSoulPower(naturalSp, realLevel, speedRate) / 12;
-                if (incrementPerMonth <= 0)
+                if (realLevel >= (Math.Floor(realLevel / 10) + 1) * 10)
                 {
-                    break;
-                }
-
-                double nextLevel;
-                if (Math.Floor(realLevel / 10) - Math.Floor(currentLevel / 10) >= 1)
-                {
-                    // 限制等级一次提升不超过一个大级
-                    nextLevel = (Math.Floor(currentLevel / 10) + 1) * 10;
+                    // 吸收魂环提升的等级和附加等级超过了当前的大阶
+                    double nextSoulCircle = GetSoulCircle(oldStatuses, realLevel);
+                    var tmpAddResult = GetSoulCircleAddLevel(nextSoulCircle, realLevel);
+                    double nextExLevel = GetExLevel(oldStatuses, realLevel);
+                    double nextSpeed = GetTrainingSpeedFromInitSoulPower(naturalSp, realLevel + tmpAddResult.IncrementLevel + nextExLevel, speedRate);
+                    var nextLevelStatus = new LevelStatus
+                    {
+                        Date = currentDate,
+                        Age = initAge + currentDate.Year - initDate.Year,
+                        Level = realLevel,
+                        TrainingSpeed = nextSpeed,
+                        ExLevel = nextExLevel,
+                        SoulCircle = nextSoulCircle,
+                        SoulCircleAddLevel = tmpAddResult.IncrementLevel,
+                        RemainSoulCircle = tmpAddResult.RemainSoulCircleValue
+                    };
+                    LevelStatuses.Add(nextLevelStatus);
+                    currentLevel = realLevel;
                 }
                 else
                 {
-                    // 计算将要提升到的下一个大级
-                    if (realLevel < 99) nextLevel = realLevel + 1;
-                    else if (realLevel < 99.8) nextLevel = Math.Min(100, realLevel + 0.4);
-                    else if (realLevel < 100) nextLevel = 100;
-                    else nextLevel = realLevel + 10;
+                    double incrementPerMonth = GetTrainingSpeedFromInitSoulPower(naturalSp, realLevel, speedRate) / 12;
+                    if (incrementPerMonth <= 0)
+                    {
+                        break;
+                    }
+
+                    double nextLevel;
+                    if (Math.Floor(realLevel / 10) - Math.Floor(currentLevel / 10) >= 1)
+                    {
+                        // 限制等级一次提升不超过一个大级
+                        nextLevel = (Math.Floor(currentLevel / 10) + 1) * 10;
+                    }
+                    else
+                    {
+                        // 计算将要提升到的下一个大级
+                        if (realLevel < 99) nextLevel = realLevel + 1;
+                        else if (realLevel < 99.8) nextLevel = Math.Min(100, realLevel + 0.4);
+                        else if (realLevel < 100) nextLevel = 100;
+                        else nextLevel = realLevel + 10;
+                    }
+
+                    int toNextLevelMonths = (int)Math.Round(Math.Max(0, nextLevel - realLevel) / incrementPerMonth);
+                    DateTime nextDate = currentDate.AddMonths(toNextLevelMonths);
+                    int nextAge = initAge + nextDate.Year - initDate.Year;
+                    double nextSoulCircle = GetSoulCircle(oldStatuses, nextLevel);
+                    var tmpAddResult = GetSoulCircleAddLevel(nextSoulCircle, nextLevel);
+                    double nextExLevel = GetExLevel(oldStatuses, nextLevel);
+                    double nextSpeed = GetTrainingSpeedFromInitSoulPower(naturalSp, nextLevel + tmpAddResult.IncrementLevel + nextExLevel, speedRate);
+                    var nextLevelStatus = new LevelStatus
+                    {
+                        Date = nextDate,
+                        Age = nextAge,
+                        Level = Math.Round(nextLevel, 1),
+                        TrainingSpeed = Math.Round(nextSpeed, 4),
+                        ExLevel = nextExLevel,
+                        SoulCircle = nextSoulCircle,
+                        SoulCircleAddLevel = tmpAddResult.IncrementLevel,
+                        RemainSoulCircle = tmpAddResult.RemainSoulCircleValue
+                    };
+                    LevelStatuses.Add(nextLevelStatus);
+                    currentDate = nextDate;
+                    currentLevel = nextLevel;
                 }
-
-                int toNextLevelMonths = (int)Math.Round(Math.Max(0, nextLevel - realLevel) / incrementPerMonth);
-                DateTime nextDate = currentDate.AddMonths(toNextLevelMonths);
-                int nextAge = initAge + nextDate.Year - initDate.Year;
-                double nextSoulCircle = GetSoulCircle(oldStatuses, nextLevel);
-                double nextSoulCircleAddedLevel = GetSoulCircleAddLevel(nextSoulCircle, nextLevel);
-                double nextExLevel = GetExLevel(oldStatuses, nextLevel);
-                double nextSpeed = GetTrainingSpeedFromInitSoulPower(naturalSp, nextLevel + nextSoulCircleAddedLevel + nextExLevel, speedRate);
-                var nextLevelStatus = new LevelStatus
-                {
-                    Date = nextDate,
-                    Age = nextAge,
-                    Level = Math.Round(nextLevel, 1),
-                    TrainingSpeed = Math.Round(nextSpeed, 4),
-                    ExLevel = nextExLevel,
-                    SoulCircle = nextSoulCircle,
-                    SoulCircleAddLevel = nextSoulCircleAddedLevel
-                };
-                LevelStatuses.Add(nextLevelStatus);
-
-                currentDate = nextDate;
-                currentLevel = nextLevel;
             }
         }
 
@@ -197,7 +227,7 @@ namespace DouLuoLevelCalculator.ViewModels
 
         #region private methods
         /// <summary>
-        /// 获取魂环等级
+        /// 获取魂环数值，有旧的配置就用旧的，没有配置旧使用默认魂环数值
         /// </summary>
         /// <param name="items">旧的等级提升步骤</param>
         /// <param name="level">当前等级</param>
@@ -237,54 +267,72 @@ namespace DouLuoLevelCalculator.ViewModels
         /// <summary>
         /// 获取魂环对魂师的附加等级
         /// </summary>
-        /// <param name="soulCircle">魂环等级</param>
+        /// <param name="soulCircle">魂环数值</param>
         /// <param name="level">当前等级</param>
         /// <returns></returns>
-        private static double GetSoulCircleAddLevel(double soulCircle, double level)
+        private static (double IncrementLevel, double RemainSoulCircleValue) GetSoulCircleAddLevel(double soulCircle, double level)
         {
-            double sc = soulCircle;
-            // 吸收魂环年限达到标准年限可以使魂力额外提升一级，小说中主角团都是这样
-            var standardSC = new List<double>
+            double valuePerLevel;
+            if (level < 20)
             {
-                300, // 大部分魂师第一魂环可以吸收四百二十三年以下
-                500, // 第二魂环可以吸收七百六十四年以
-                1400, // 大部分魂师第三魂环可以吸收一千七百六十年以下
-                4000, // 第四魂环可以吸收五千年以下，唐三第四环吸收万年魂环提升了一级
-                10000, // 大部分魂师第五魂环可以吸收一万两千年以下
-                15000, // 第六魂环可以吸收两万年以下
-                40000, // 第七魂环可以吸收五万年以下
-                60000, // 第八魂环可以吸收大部分万年魂环
-                80000,
-                100000
-            };
-
-            if (level <= 60)
-            {
-                // 从10级到60级
-                double bigLevel = Math.Floor(level / 10);
-                if (sc < 50000)
-                {
-                    int tmpIndex = standardSC.FindLastIndex(x => sc >= x);
-                    if (tmpIndex < 0 || tmpIndex + 1 - bigLevel < 0) return 0;
-                    else return 1 + tmpIndex + 1 - bigLevel;
-                }
-                else
-                {
-                    return 1 + Math.Round(sc / 50000 * (7 - bigLevel));
-                }
+                // 大部分魂师第一魂环可以吸收四百二十三年以下，推测此时魂力等级提升=魂环数值/300
+                valuePerLevel = 300;
             }
-            else if (level <= 80)
+            else if (level < 30)
             {
-                // 从70级到80级，5万年魂环可以提升两级
-                return Math.Floor(sc / 50000 * 2);
+                // 第二魂环可以吸收七百六十四年以，推测此时魂力等级提升=魂环数值/500
+                valuePerLevel = 500;
+            }
+            else if (level < 40)
+            {
+                // 大部分魂师第三魂环可以吸收一千七百六十年以下，推测此时魂力等级提升=魂环数值/1250
+                valuePerLevel = 1250;
+            }
+            else if (level < 50)
+            {
+                // 第四魂环可以吸收五千年以下，唐三第四环吸收万年魂环提升了一级，推测此时魂力等级提升=魂环数值/4000
+                valuePerLevel = 4000;
+            }
+            else if (level < 60)
+            {
+                // 大部分魂师第五魂环可以吸收一万两千年以下，推测此时魂力等级提升=魂环数值/10000
+                valuePerLevel = 10000;
+            }
+            else if (level < 70)
+            {
+                // 第六魂环可以吸收两万年以下，推测此时魂力等级提升=魂环数值/15000
+                valuePerLevel = 15000;
+            }
+            else if (level < 80)
+            {
+                // 第七魂环可以吸收五万年以下，推测此时魂力等级提升=魂环数值/30000
+                valuePerLevel = 30000;
+            }
+            else if (level < 90)
+            {
+                // 第八魂环可以吸收大部分万年魂环，推测此时魂力等级提升=魂环数值/40000
+                valuePerLevel = 40000;
+            }
+            else if (level < 95)
+            {
+                // 唐三吸收六万年暗魔邪神虎从93级升到94级多，得出5万年魂环可以使人在95级之前提升一级。
+                valuePerLevel = 50000;
+            }
+            else if (level < 99)
+            {
+                // 双生武魂者可以凭借第二魂环附加万年魂环快速提升等级到99级，所以95到99级每吸收8万年魂环应该能够提升一级
+                valuePerLevel = 80000;
             }
             else
             {
-                // 唐三吸收六万年暗魔邪神虎从93级升到94级多，得出5万年魂环可以使人在95级之前提升一级。
-                if (sc <= 250000) return Math.Floor(sc / 50000);
-                else if (sc <= 650000) return 5 + Math.Floor((sc - 250000) / 100000);
-                else return 9 + Math.Round((sc - 650000) / 500000, 1);
+                // 合理推测99级之后每吸收10万年魂环提升0.1级
+                valuePerLevel = 1000000;
             }
+
+            double maxIncrementLevel = (Math.Floor(level / 10) + 1) * 10 - level;
+            double incrementLevel = Math.Min(maxIncrementLevel, soulCircle / valuePerLevel);
+            double remainSoulCircleValue = soulCircle - incrementLevel * valuePerLevel;
+            return (incrementLevel, remainSoulCircleValue);
         }
 
         /// <summary>
@@ -330,6 +378,12 @@ namespace DouLuoLevelCalculator.ViewModels
             return speed;
         }
 
+        /// <summary>
+        /// 获取剩余潜力对修炼速度的影响系数
+        /// </summary>
+        /// <param name="naturalSp">先天魂力</param>
+        /// <param name="level">当前等级</param>
+        /// <returns></returns>
         private static double GetRemainPotentialRate(double naturalSp, double level)
         {
             // 根据小说潜力大概等于先天魂力x10

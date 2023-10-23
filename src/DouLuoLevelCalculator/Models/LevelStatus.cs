@@ -52,7 +52,7 @@ namespace DouLuoLevelCalculator.Models
 
         public double _soulCircle;
         /// <summary>
-        /// 猎取的魂环年限
+        /// 猎取的魂环数值
         /// </summary>
         public double SoulCircle
         {
@@ -66,6 +66,15 @@ namespace DouLuoLevelCalculator.Models
         public double SoulCircleAddLevel
         {
             get => _soulCircleAddLevel; set => SetProperty(ref _soulCircleAddLevel, value);
+        }
+
+        public double _remainSoulCircle;
+        /// <summary>
+        /// 上次附加魂环提升等级后没有用完的能量
+        /// </summary>
+        public double RemainSoulCircle
+        {
+            get => _remainSoulCircle; set => SetProperty(ref _remainSoulCircle, value);
         }
 
         private double _trainingSpeed;
