@@ -53,11 +53,23 @@
                 <DataGridTextColumn Header="等级" IsReadOnly="True" Binding="{Binding Level, StringFormat={}{0}级}"/>
                 <DataGridTextColumn Header="日期" IsReadOnly="True" Binding="{Binding Date, StringFormat={}{0:yyyy年MM月dd日}}"/>
                 <DataGridTextColumn Header="年龄" IsReadOnly="True" Binding="{Binding Age, StringFormat={}{0}岁}"/>
-                <DataGridTextColumn Header="魂环数值" Binding="{Binding SoulCircle, StringFormat={}{0}年}"/>
+                <DataGridTextColumn Binding="{Binding SoulCircle, StringFormat={}{0}年}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="魂环数值" ToolTip="大部分魂师第一魂环可以吸收423年以下，第二魂环可以吸收764年以下，第三魂环可以吸收1760年以下，第四魂环可以吸收5000年以下，第五魂环可以吸收1万2千年以下，第六魂环可以吸收2万年以下，第七魂环可以吸收5万年以下，第八魂环可以吸收大部分万年魂环"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="魂环附加等级" IsReadOnly="True" Binding="{Binding SoulCircleAddLevel, StringFormat={}{0}级}"/>
                 <DataGridTextColumn Header="剩余魂环能量" IsReadOnly="True" Binding="{Binding RemainSoulCircle, StringFormat={}{0}年}"/>
-                <DataGridTextColumn Header="额外附加等级" Binding="{Binding ExLevel, StringFormat={}{0}级}"/>
-                <DataGridTextColumn Header="努力系数调整" Binding="{Binding Effort}"/>
+                <DataGridTextColumn Binding="{Binding ExLevel, StringFormat={}{0}级}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="额外附加等级" ToolTip="仙草可提升魂力5（马红俊），6（宁荣荣），7（朱竹青）级"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Effort}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="努力系数调整" ToolTip="懈怠0.7，一般0.8，努力0.9，非常1"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="最终计算努力系数" IsReadOnly="True" Binding="{Binding CalculateEffort}"/>
                 <DataGridTextColumn Header="天赋调整" Binding="{Binding CongenitalPower}"/>
                 <DataGridTextColumn Header="最终计天赋" IsReadOnly="True" Binding="{Binding CalculateCongenitalPower}"/>
