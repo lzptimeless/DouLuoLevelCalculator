@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DouLuoLevelCalculator"
         xmlns:vm="clr-namespace:DouLuoLevelCalculator.ViewModels"
-        Title="斗罗等级计算器" Height="600" Width="800"
+        Title="斗罗等级计算器" Height="700" Width="1100"
         FontSize="13"
         mc:Ignorable="d"
         d:DataContext="{d:DesignData Type=vm:MainViewModel, IsDesignTimeCreatable=False}">
@@ -36,13 +36,16 @@
             <DatePicker Grid.Row="1" Grid.Column="2" x:Name="DatePickerInitMs" Margin="4,0" VerticalContentAlignment="Center" VerticalAlignment="Bottom" Height="25" SelectedDate="{Binding InitDate}"/>
             <TextBlock Grid.Column="3" Text="先天魂力" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             <TextBox Grid.Row="1" Grid.Column="3" x:Name="TxtNaturalSp" VerticalContentAlignment="Center" Margin="4,0" Height="25" VerticalAlignment="Bottom" Text="{Binding NaturalSp}"/>
-            <TextBlock Grid.Column="4" Text="修炼速率" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            <TextBox Grid.Row="1" Grid.Column="4" x:Name="TxtSpeedRate"  VerticalContentAlignment="Center" Margin="4,0" Height="25" VerticalAlignment="Bottom" Text="{Binding SpeedRate}"/>
-            <TextBlock Grid.Column="5" Text="95级后修炼速率" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            <TextBox Grid.Row="1" Grid.Column="5" x:Name="TxtSpeedRateAter95"  VerticalContentAlignment="Center" Margin="4,0,0,0" Height="25" VerticalAlignment="Bottom" Text="{Binding SpeedRateAfter95}"/>
+            <TextBlock Grid.Column="4" Text="努力系数" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="4" x:Name="TxtSpeedRate"  VerticalContentAlignment="Center" Margin="4,0" Height="25" VerticalAlignment="Bottom" Text="{Binding Effort}"/>
+            <TextBlock Grid.Column="5" Text="95级后努力系数" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="5" x:Name="TxtSpeedRateAter95"  VerticalContentAlignment="Center" Margin="4,0,0,0" Height="25" VerticalAlignment="Bottom" Text="{Binding EffortAfter95}"/>
+            <TextBlock Grid.Column="6" Text="{Binding CharacterName}" VerticalAlignment="Center" Margin="20,0,0,0"/>
             <StackPanel Grid.Row="1" Grid.Column="6" Orientation="Horizontal">
                 <Button x:Name="BtnCompute" Width="100" Height="30" Content="计算" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ComputeCommand}"/>
                 <Button x:Name="BtnReset" Width="100" Height="30" Content="重置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ResetCommand}"/>
+                <Button x:Name="BtnLoadCharacter" Width="100" Height="30" Content="导入人物配置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ImportCharacterConfigCommand}"/>
+                <Button x:Name="BtnSaveCharacter" Width="100" Height="30" Content="导出人物配置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ExportCharacterConfigCommand}"/>
             </StackPanel>
         </Grid>
         <DataGrid Grid.Row="1" ItemsSource="{Binding LevelStatuses}" AutoGenerateColumns="False" ClipboardCopyMode="IncludeHeader" CopyingRowClipboardContent="DataGrid_CopyingRowClipboardContent">
@@ -54,6 +57,10 @@
                 <DataGridTextColumn Header="魂环附加等级" IsReadOnly="True" Binding="{Binding SoulCircleAddLevel, StringFormat={}{0}级}"/>
                 <DataGridTextColumn Header="剩余魂环能量" IsReadOnly="True" Binding="{Binding RemainSoulCircle, StringFormat={}{0}年}"/>
                 <DataGridTextColumn Header="额外附加等级" Binding="{Binding ExLevel, StringFormat={}{0}级}"/>
+                <DataGridTextColumn Header="努力系数调整" Binding="{Binding Effort}"/>
+                <DataGridTextColumn Header="最终计算努力系数" IsReadOnly="True" Binding="{Binding CalculateEffort}"/>
+                <DataGridTextColumn Header="天赋调整" Binding="{Binding CongenitalPower}"/>
+                <DataGridTextColumn Header="最终计天赋" IsReadOnly="True" Binding="{Binding CalculateCongenitalPower}"/>
                 <DataGridTextColumn Header="当前修炼速度（级/年）" IsReadOnly="True" Binding="{Binding TrainingSpeed, StringFormat={}{0}级/年}"/>
             </DataGrid.Columns>
         </DataGrid>

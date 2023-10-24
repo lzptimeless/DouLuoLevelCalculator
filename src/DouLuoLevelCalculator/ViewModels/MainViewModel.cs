@@ -1,13 +1,17 @@
 ﻿using DouLuoLevelCalculator.Models;
+using Microsoft.Win32;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Eventing.Reader;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls.Ribbon;
 
 namespace DouLuoLevelCalculator.ViewModels
 {
@@ -50,28 +54,37 @@ namespace DouLuoLevelCalculator.ViewModels
             get => _naturalSp; set => SetProperty(ref _naturalSp, value);
         }
 
-        private double _speedRate = 1;
+        private double _effort = 1;
         /// <summary>
         /// 相对于正常努力修炼的速度的比率，有些懈怠0.7，中规中矩0.8，努力0.9，非常努力1，默认1
         /// </summary>
-        public double SpeedRate
+        public double Effort
         {
-            get => _speedRate; set => SetProperty(ref _speedRate, value);
+            get => _effort; set => SetProperty(ref _effort, value);
         }
 
-        private double _speedRateAfter95 = 1;
+        private double _effortAfter95 = 1;
         /// <summary>
         /// 95级之后的修炼速率
         /// </summary>
-        public double SpeedRateAfter95
+        public double EffortAfter95
         {
-            get => _speedRateAfter95; set => SetProperty(ref _speedRateAfter95, value);
+            get => _effortAfter95; set => SetProperty(ref _effortAfter95, value);
         }
 
         /// <summary>
         /// 等级提升步骤
         /// </summary>
         public ObservableCollection<LevelStatus> LevelStatuses { get; set; } = new ObservableCollection<LevelStatus>();
+
+        private string? _characterName;
+        /// <summary>
+        /// 人物名字
+        /// </summary>
+        public string? CharacterName
+        {
+            get => _characterName; set => SetProperty(ref _characterName, value);
+        }
         #endregion
 
         #region commands
@@ -83,7 +96,7 @@ namespace DouLuoLevelCalculator.ViewModels
         {
             get
             {
-                _computeCommand ??= new DelegateCommand(() => Compute(InitAge, InitLevel, InitDate, NaturalSp, SpeedRate));
+                _computeCommand ??= new DelegateCommand(Compute);
 
                 return _computeCommand;
             }
@@ -97,8 +110,34 @@ namespace DouLuoLevelCalculator.ViewModels
         {
             get
             {
-                _resetCommand ??= new DelegateCommand(() => Reset());
+                _resetCommand ??= new DelegateCommand(Reset);
                 return _resetCommand;
+            }
+        }
+
+        private DelegateCommand? _importCharacterConfigCommand;
+        /// <summary>
+        /// 导入人物配置
+        /// </summary>
+        public DelegateCommand ImportCharacterConfigCommand
+        {
+            get
+            {
+                _importCharacterConfigCommand ??= new DelegateCommand(Import);
+                return _importCharacterConfigCommand;
+            }
+        }
+
+        private DelegateCommand? _exportCharacterConfigCommand;
+        /// <summary>
+        /// 导出人物配置
+        /// </summary>
+        public DelegateCommand ExportCharacterConfigCommand
+        {
+            get
+            {
+                _exportCharacterConfigCommand ??= new DelegateCommand(Export);
+                return _exportCharacterConfigCommand;
             }
         }
         #endregion
@@ -111,14 +150,16 @@ namespace DouLuoLevelCalculator.ViewModels
         /// <param name="initLevel">初始等级</param>
         /// <param name="initDate">初始日期</param>
         /// <param name="naturalSp">先天魂力</param>
-        /// <param name="speedRate">相对于正常努力修炼速度的比率</param>
-        public void Compute(int initAge, double initLevel, DateTime initDate, double naturalSp, double speedRate)
+        /// <param name="effort">相对于正常努力修炼速度的比率</param>
+        public void Compute(int initAge, double initLevel, DateTime initDate, double naturalSp, double effort)
         {
             List<LevelStatus> oldStatuses = new List<LevelStatus>(LevelStatuses);
             LevelStatuses.Clear();
 
             DateTime currentDate = initDate;
             double currentLevel = initLevel;
+            double currentEffort = GetEffort(oldStatuses, currentLevel) != 0 ? GetEffort(oldStatuses, currentLevel) : effort;
+            double currentCongenitalPower = GetCongenitalPower(oldStatuses, currentLevel) != 0 ? GetCongenitalPower(oldStatuses, currentLevel) : naturalSp;
             double soulCircle = GetSoulCircle(oldStatuses, currentLevel);
             var addResult = GetSoulCircleAddLevel(soulCircle, currentLevel);
             double remainSoulCircle = addResult.RemainSoulCircleValue;
@@ -128,7 +169,11 @@ namespace DouLuoLevelCalculator.ViewModels
                 Date = currentDate,
                 Age = initAge,
                 Level = currentLevel,
-                TrainingSpeed = Math.Round(GetTrainingSpeedFromInitSoulPower(naturalSp, currentLevel, speedRate), 4),
+                Effort = GetEffortSetting(oldStatuses, currentLevel),
+                CalculateEffort = currentEffort,
+                CongenitalPower = GetCongenitalSetting(oldStatuses, currentLevel),
+                CalculateCongenitalPower = currentCongenitalPower,
+                TrainingSpeed = Math.Round(GetTrainingSpeedFromInitSoulPower(currentCongenitalPower, currentLevel, currentEffort), 4),
                 ExLevel = GetExLevel(oldStatuses, currentLevel),
                 SoulCircle = soulCircle,
                 SoulCircleAddLevel = addResult.IncrementLevel,
@@ -138,6 +183,8 @@ namespace DouLuoLevelCalculator.ViewModels
             while (currentLevel < 100)
             {
                 var lastLevelStatus = LevelStatuses.Last()!;
+                currentEffort = GetEffort(oldStatuses, currentLevel) != 0 ? GetEffort(oldStatuses, currentLevel) : effort;
+                currentCongenitalPower = GetCongenitalPower(oldStatuses, currentLevel) != 0 ? GetCongenitalPower(oldStatuses, currentLevel) : naturalSp;
                 double realLevel = currentLevel + lastLevelStatus.SoulCircleAddLevel + lastLevelStatus.ExLevel;
                 double nextLevel;
                 DateTime nextDate;
@@ -149,7 +196,7 @@ namespace DouLuoLevelCalculator.ViewModels
                 }
                 else
                 {
-                    double incrementPerDay = GetTrainingSpeedFromInitSoulPower(naturalSp, realLevel, speedRate) / 365;
+                    double incrementPerDay = GetTrainingSpeedFromInitSoulPower(currentCongenitalPower, realLevel, currentEffort) / 365;
                     if (incrementPerDay <= 0)
                     {
                         break;
@@ -169,13 +216,19 @@ namespace DouLuoLevelCalculator.ViewModels
                 double nextSoulCircle = GetSoulCircle(oldStatuses, nextLevel);
                 var tmpAddResult = GetSoulCircleAddLevel(nextSoulCircle + lastLevelStatus.RemainSoulCircle, nextLevel);
                 double nextExLevel = GetExLevel(oldStatuses, nextLevel);
-                double nextSpeed = GetTrainingSpeedFromInitSoulPower(naturalSp, nextLevel + tmpAddResult.IncrementLevel + nextExLevel, speedRate);
+                currentEffort = GetEffort(oldStatuses, nextLevel) != 0 ? GetEffort(oldStatuses, nextLevel) : effort;
+                currentCongenitalPower = GetCongenitalPower(oldStatuses, nextLevel) != 0 ? GetCongenitalPower(oldStatuses, nextLevel) : naturalSp;
+                double nextSpeed = GetTrainingSpeedFromInitSoulPower(currentCongenitalPower, nextLevel + tmpAddResult.IncrementLevel + nextExLevel, currentEffort);
                 int nextAge = initAge + nextDate.Year - initDate.Year;
                 var nextLevelStatus = new LevelStatus
                 {
                     Date = nextDate,
                     Age = nextAge,
                     Level = Math.Round(nextLevel, 1),
+                    Effort = GetEffortSetting(oldStatuses, nextLevel),
+                    CalculateEffort = currentEffort,
+                    CongenitalPower = GetCongenitalSetting(oldStatuses, nextLevel),
+                    CalculateCongenitalPower = currentCongenitalPower,
                     TrainingSpeed = Math.Round(nextSpeed, 4),
                     ExLevel = nextExLevel,
                     SoulCircle = nextSoulCircle,
@@ -189,6 +242,14 @@ namespace DouLuoLevelCalculator.ViewModels
         }
 
         /// <summary>
+        /// 刷新等级提升步骤
+        /// </summary>
+        public void Compute()
+        {
+            Compute(InitAge, InitLevel, InitDate, NaturalSp, Effort);
+        }
+
+        /// <summary>
         /// 重置数据
         /// </summary>
         public void Reset()
@@ -197,10 +258,109 @@ namespace DouLuoLevelCalculator.ViewModels
             InitLevel = 10;
             InitDate = new DateTime(2631, 9, 1);
             NaturalSp = 10;
-            SpeedRate = 1;
-            SpeedRateAfter95 = 1;
+            Effort = 1;
+            EffortAfter95 = 1;
 
             LevelStatuses.Clear();
+        }
+
+        /// <summary>
+        /// 导入人物配置
+        /// </summary>
+        public void Import()
+        {
+            var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Characters");
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            var dialog = new OpenFileDialog();
+            dialog.InitialDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Characters");
+            dialog.Filter = "人物配置|*.xml";
+            if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.FileName))
+            {
+                try
+                {
+                    var config = CharacterConfig.Load(dialog.FileName);
+                    if (config == null) throw new ApplicationException("配置文件为空！");
+
+                    Reset();
+
+                    CharacterName = Path.GetFileNameWithoutExtension(dialog.FileName);
+                    InitDate = config.InitDate;
+                    InitAge = config.InitAge;
+                    InitLevel = config.InitLevel;
+                    NaturalSp = config.InitCongenitalPower;
+                    Effort = config.InitEffort;
+
+                    // 创建LevelStatuses
+                    Compute();
+
+                    foreach (var level in config.Levels)
+                    {
+                        var currentLevel = LevelStatuses.FirstOrDefault(x => x.Level == level.Level);
+                        if (currentLevel != null)
+                        {
+                            currentLevel.SoulCircle = level.SoulCircle;
+                            currentLevel.ExLevel = level.ExLevel;
+                            currentLevel.Effort = level.Effort;
+                            currentLevel.CongenitalPower = level.CongenitalPower;
+                        }
+                    }
+
+                    // 重新计算
+                    Compute();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString(), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 导出人物配置
+        /// </summary>
+        public void Export()
+        {
+            var dialog = new SaveFileDialog();
+            dialog.InitialDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Characters");
+            dialog.Filter = "人物配置|*.xml";
+            if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.FileName))
+            {
+                try
+                {
+                    CharacterName = Path.GetFileNameWithoutExtension(dialog.FileName);
+                    var config = new CharacterConfig();
+                    config.InitDate = InitDate;
+                    config.InitAge = InitAge;
+                    config.InitLevel = InitLevel;
+                    config.InitCongenitalPower = NaturalSp;
+                    config.InitEffort = Effort;
+
+                    foreach (var level in LevelStatuses)
+                    {
+                        if (level.SoulCircle != 0 || level.ExLevel != 0 || level.Effort != 0 || level.CongenitalPower != 0)
+                        {
+                            config.Levels.Add(new CharacterConfigLevel
+                            {
+                                Level = level.Level,
+                                SoulCircle = level.SoulCircle,
+                                ExLevel = level.ExLevel,
+                                Effort = level.Effort,
+                                CongenitalPower = level.CongenitalPower
+                            });
+                        }
+                    }
+
+                    config.Save(dialog.FileName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString(), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
         #endregion
 
@@ -328,6 +488,68 @@ namespace DouLuoLevelCalculator.ViewModels
         }
 
         /// <summary>
+        /// 获取保存在items中离指定等级最近的努力系数
+        /// </summary>
+        /// <param name="items">旧的等级提升步骤</param>
+        /// <param name="level">当前等级</param>
+        /// <returns></returns>
+        private static double GetEffort(IEnumerable<LevelStatus> items, double level)
+        {
+            LevelStatus? lastItem = null;
+            foreach (var item in items)
+            {
+                if (item.Level > level) break;
+                if (item.Effort != 0) lastItem = item;
+            }
+
+            return lastItem != null ? lastItem.Effort : 0;
+        }
+
+        /// <summary>
+        /// 获取指定等级设置的努力系数
+        /// </summary>
+        /// <param name="items">旧的等级提升步骤</param>
+        /// <param name="level">当前等级</param>
+        /// <returns></returns>
+        private static double GetEffortSetting(IEnumerable<LevelStatus> items, double level)
+        {
+            var item = items.FirstOrDefault(x => x.Level == level);
+            if (item == null) return 0;
+            else return item.Effort;
+        }
+
+        /// <summary>
+        /// 获取保存在Items中离指定等级最近的先天魂力
+        /// </summary>
+        /// <param name="items">旧的等级提升步骤</param>
+        /// <param name="level">当前等级</param>
+        /// <returns></returns>
+        private static double GetCongenitalPower(IEnumerable<LevelStatus> items, double level)
+        {
+            LevelStatus? lastItem = null;
+            foreach (var item in items)
+            {
+                if (item.Level > level) break;
+                if (item.CongenitalPower != 0) lastItem = item;
+            }
+
+            return lastItem != null ? lastItem.CongenitalPower : 0;
+        }
+
+        /// <summary>
+        /// 获取指定等级设置的先天魂力
+        /// </summary>
+        /// <param name="items">旧的等级提升步骤</param>
+        /// <param name="level">当前等级</param>
+        /// <returns></returns>
+        private static double GetCongenitalSetting(IEnumerable<LevelStatus> items, double level)
+        {
+            var item = items.FirstOrDefault(x => x.Level == level);
+            if (item == null) return 0;
+            else return item.CongenitalPower;
+        }
+
+        /// <summary>
         /// 根据先天魂力和当前等级获得当前修炼速度（级/年）
         /// </summary>
         /// <param name="naturalSp">先天魂力</param>
@@ -352,7 +574,7 @@ namespace DouLuoLevelCalculator.ViewModels
 
             // 再加上个人努力系数
             if (level < 95) speed = speed * speedRate;
-            else speed = speed * _speedRateAfter95;
+            else speed = speed * _effortAfter95;
 
             return speed;
         }
