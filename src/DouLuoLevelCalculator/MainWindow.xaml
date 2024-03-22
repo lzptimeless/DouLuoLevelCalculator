@@ -26,6 +26,7 @@
                 <ColumnDefinition Width="60"/>
                 <ColumnDefinition Width="60"/>
                 <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="100"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <TextBlock Text="起始年龄" VerticalAlignment="Center" HorizontalAlignment="Center"/>
@@ -40,8 +41,9 @@
             <TextBox Grid.Row="1" Grid.Column="4" x:Name="TxtSpeedRate"  VerticalContentAlignment="Center" Margin="4,0" Height="25" VerticalAlignment="Bottom" Text="{Binding Effort}"/>
             <TextBlock Grid.Column="5" Text="95级后努力系数" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             <TextBox Grid.Row="1" Grid.Column="5" x:Name="TxtSpeedRateAter95"  VerticalContentAlignment="Center" Margin="4,0,0,0" Height="25" VerticalAlignment="Bottom" Text="{Binding EffortAfter95}"/>
-            <TextBlock Grid.Column="6" Text="{Binding CharacterName}" VerticalAlignment="Center" Margin="20,0,0,0"/>
-            <StackPanel Grid.Row="1" Grid.Column="6" Orientation="Horizontal">
+            <TextBlock Grid.Column="6" Text="人物" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Row="1" Grid.Column="6" Text="{Binding CharacterName}" VerticalAlignment="Center" Margin="20,0,0,0"/>
+            <StackPanel Grid.Row="1" Grid.Column="7" Orientation="Horizontal">
                 <Button x:Name="BtnCompute" Width="100" Height="30" Content="计算" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ComputeCommand}"/>
                 <Button x:Name="BtnReset" Width="100" Height="30" Content="重置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ResetCommand}"/>
                 <Button x:Name="BtnLoadCharacter" Width="100" Height="30" Content="导入人物配置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ImportCharacterConfigCommand}"/>

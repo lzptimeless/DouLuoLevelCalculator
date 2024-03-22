@@ -36,9 +36,9 @@ namespace DouLuoLevelCalculator.ViewModels
             get => _initLevel; set => SetProperty(ref _initLevel, value);
         }
 
-        private DateTime _initDate = new DateTime(2631, 9, 1);
+        private DateTime _initDate = new DateTime(2637, 9, 1);
         /// <summary>
-        /// 初始时间，默认为2631/9唐三出生的哪一年
+        /// 初始时间，默认为2637/9唐三6岁的哪一年
         /// </summary>
         public DateTime InitDate
         {
@@ -254,6 +254,8 @@ namespace DouLuoLevelCalculator.ViewModels
         /// </summary>
         public void Reset()
         {
+            CharacterName = null;
+
             InitAge = 6;
             InitLevel = 10;
             InitDate = new DateTime(2631, 9, 1);
