@@ -163,6 +163,7 @@ namespace DouLuoLevelCalculator.ViewModels
             double soulCircle = GetSoulCircle(oldStatuses, currentLevel);
             var addResult = GetSoulCircleAddLevel(soulCircle, currentLevel);
             double remainSoulCircle = addResult.RemainSoulCircleValue;
+            string? comments = GetComments(oldStatuses, currentLevel);
 
             LevelStatuses.Add(new LevelStatus
             {
@@ -177,7 +178,8 @@ namespace DouLuoLevelCalculator.ViewModels
                 ExLevel = GetExLevel(oldStatuses, currentLevel),
                 SoulCircle = soulCircle,
                 SoulCircleAddLevel = addResult.IncrementLevel,
-                RemainSoulCircle = remainSoulCircle
+                RemainSoulCircle = remainSoulCircle,
+                Comments = comments
             });
 
             while (currentLevel < 100)
@@ -233,7 +235,8 @@ namespace DouLuoLevelCalculator.ViewModels
                     ExLevel = nextExLevel,
                     SoulCircle = nextSoulCircle,
                     SoulCircleAddLevel = tmpAddResult.IncrementLevel,
-                    RemainSoulCircle = tmpAddResult.RemainSoulCircleValue
+                    RemainSoulCircle = tmpAddResult.RemainSoulCircleValue,
+                    Comments = GetComments(oldStatuses, nextLevel)
                 };
                 LevelStatuses.Add(nextLevelStatus);
                 currentDate = nextDate;
@@ -308,6 +311,7 @@ namespace DouLuoLevelCalculator.ViewModels
                             currentLevel.ExLevel = level.ExLevel;
                             currentLevel.Effort = level.Effort;
                             currentLevel.CongenitalPower = level.CongenitalPower;
+                            currentLevel.Comments = level.Comments;
                         }
                     }
 
@@ -351,7 +355,8 @@ namespace DouLuoLevelCalculator.ViewModels
                                 SoulCircle = level.SoulCircle,
                                 ExLevel = level.ExLevel,
                                 Effort = level.Effort,
-                                CongenitalPower = level.CongenitalPower
+                                CongenitalPower = level.CongenitalPower,
+                                Comments = level.Comments
                             });
                         }
                     }
@@ -505,6 +510,19 @@ namespace DouLuoLevelCalculator.ViewModels
             }
 
             return lastItem != null ? lastItem.Effort : 0;
+        }
+
+        /// <summary>
+        /// 获取指定等级的备注
+        /// </summary>
+        /// <param name="items">旧的等级提升步骤</param>
+        /// <param name="level">当前等级</param>
+        /// <returns></returns>
+        private static string? GetComments(IEnumerable<LevelStatus> items, double level)
+        {
+            var item = items.FirstOrDefault(x => x.Level == level);
+            if (item == null) return null;
+            else return item.Comments;
         }
 
         /// <summary>

@@ -121,6 +121,11 @@ namespace DouLuoLevelCalculator.Models
         {
             get => _calculateCongenitalPower; set => SetProperty(ref _calculateCongenitalPower, value);
         }
+
+        /// <summary>
+        /// 备注
+        /// </summary>
+        public string? Comments { get; set; }
         #endregion
     }
 }

@@ -90,5 +90,10 @@ namespace DouLuoLevelCalculator.Models
         /// </summary>
         [XmlAttribute]
         public double CongenitalPower { get; set; }
+        /// <summary>
+        /// 备注
+        /// </summary>
+        [XmlAttribute]
+        public string? Comments { get; set; }
     }
 }

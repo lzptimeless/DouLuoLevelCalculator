@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DouLuoLevelCalculator"
         xmlns:vm="clr-namespace:DouLuoLevelCalculator.ViewModels"
-        Title="斗罗等级计算器" Height="700" Width="1100"
+        Title="斗罗等级计算器" Height="700" Width="1200"
         FontSize="13"
         mc:Ignorable="d"
         d:DataContext="{d:DesignData Type=vm:MainViewModel, IsDesignTimeCreatable=False}">
@@ -84,6 +84,7 @@
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="最终计算天赋" IsReadOnly="True" Binding="{Binding CalculateCongenitalPower}"/>
                 <DataGridTextColumn Header="当前修炼速度（级/年）" IsReadOnly="True" Binding="{Binding TrainingSpeed, StringFormat={}{0}级/年}"/>
+                <DataGridTextColumn Header="备注" Binding="{Binding Comments}" MinWidth="200"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
