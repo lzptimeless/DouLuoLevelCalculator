@@ -347,7 +347,7 @@ namespace DouLuoLevelCalculator.ViewModels
 
                     foreach (var level in LevelStatuses)
                     {
-                        if (level.SoulCircle != 0 || level.ExLevel != 0 || level.Effort != 0 || level.CongenitalPower != 0)
+                        if (level.SoulCircle != 0 || level.ExLevel != 0 || level.Effort != 0 || level.CongenitalPower != 0 || !string.IsNullOrEmpty(level.Comments))
                         {
                             config.Levels.Add(new CharacterConfigLevel
                             {
