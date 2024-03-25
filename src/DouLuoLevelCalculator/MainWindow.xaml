@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DouLuoLevelCalculator"
         xmlns:vm="clr-namespace:DouLuoLevelCalculator.ViewModels"
-        Title="斗罗等级计算器" Height="700" Width="1200"
+        Title="斗罗等级计算器" Height="700" Width="1400"
         FontSize="13"
         mc:Ignorable="d"
         d:DataContext="{d:DesignData Type=vm:MainViewModel, IsDesignTimeCreatable=False}">
@@ -39,8 +39,6 @@
             <TextBox Grid.Row="1" Grid.Column="3" x:Name="TxtNaturalSp" VerticalContentAlignment="Center" Margin="4,0" Height="25" VerticalAlignment="Bottom" Text="{Binding NaturalSp}"/>
             <TextBlock Grid.Column="4" Text="努力系数" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             <TextBox Grid.Row="1" Grid.Column="4" x:Name="TxtSpeedRate"  VerticalContentAlignment="Center" Margin="4,0" Height="25" VerticalAlignment="Bottom" Text="{Binding Effort}"/>
-            <TextBlock Grid.Column="5" Text="95级后努力系数" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            <TextBox Grid.Row="1" Grid.Column="5" x:Name="TxtSpeedRateAter95"  VerticalContentAlignment="Center" Margin="4,0,0,0" Height="25" VerticalAlignment="Bottom" Text="{Binding EffortAfter95}"/>
             <TextBlock Grid.Column="6" Text="人物" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             <TextBlock Grid.Row="1" Grid.Column="6" Text="{Binding CharacterName}" VerticalAlignment="Center" Margin="20,0,0,0"/>
             <StackPanel Grid.Row="1" Grid.Column="7" Orientation="Horizontal">

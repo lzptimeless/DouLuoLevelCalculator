@@ -63,15 +63,6 @@ namespace DouLuoLevelCalculator.ViewModels
             get => _effort; set => SetProperty(ref _effort, value);
         }
 
-        private double _effortAfter95 = 1;
-        /// <summary>
-        /// 95级之后的修炼速率
-        /// </summary>
-        public double EffortAfter95
-        {
-            get => _effortAfter95; set => SetProperty(ref _effortAfter95, value);
-        }
-
         /// <summary>
         /// 等级提升步骤
         /// </summary>
@@ -264,7 +255,6 @@ namespace DouLuoLevelCalculator.ViewModels
             InitDate = new DateTime(2631, 9, 1);
             NaturalSp = 10;
             Effort = 1;
-            EffortAfter95 = 1;
 
             LevelStatuses.Clear();
         }
@@ -593,8 +583,7 @@ namespace DouLuoLevelCalculator.ViewModels
             speed = speed * GetRemainPotentialRate(naturalSp, level);
 
             // 再加上个人努力系数
-            if (level < 95) speed = speed * speedRate;
-            else speed = speed * _effortAfter95;
+            speed = speed * speedRate;
 
             return speed;
         }
