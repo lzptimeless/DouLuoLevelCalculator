@@ -44,8 +44,9 @@
             <StackPanel Grid.Row="1" Grid.Column="7" Orientation="Horizontal">
                 <Button x:Name="BtnCompute" Width="100" Height="30" Content="计算" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ComputeCommand}"/>
                 <Button x:Name="BtnReset" Width="100" Height="30" Content="重置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ResetCommand}"/>
-                <Button x:Name="BtnLoadCharacter" Width="100" Height="30" Content="导入人物配置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ImportCharacterConfigCommand}"/>
-                <Button x:Name="BtnSaveCharacter" Width="100" Height="30" Content="导出人物配置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ExportCharacterConfigCommand}"/>
+                <Button x:Name="BtnImportCharacter" Width="100" Height="30" Content="导入人物配置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ImportCharacterConfigCommand}"/>
+                <Button x:Name="BtnExportCharacter" Width="100" Height="30" Content="导出人物配置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding ExportCharacterConfigCommand}"/>
+                <Button x:Name="BtnSaveCharacter" Width="100" Height="30" Content="保存配置" HorizontalAlignment="Left" Margin="20,0,0,0" Command="{Binding SaveCommand}"/>
             </StackPanel>
         </Grid>
         <DataGrid Grid.Row="1" ItemsSource="{Binding LevelStatuses}" AutoGenerateColumns="False" ClipboardCopyMode="IncludeHeader" CopyingRowClipboardContent="DataGrid_CopyingRowClipboardContent">

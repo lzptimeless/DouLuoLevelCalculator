@@ -76,6 +76,15 @@ namespace DouLuoLevelCalculator.ViewModels
         {
             get => _characterName; set => SetProperty(ref _characterName, value);
         }
+
+        private string? _currentProfilePath;
+        /// <summary>
+        /// 当前配置路径
+        /// </summary>
+        public string? CurrentProfilePath
+        {
+            get => _currentProfilePath; set => SetProperty(ref _currentProfilePath, value);
+        }
         #endregion
 
         #region commands
@@ -129,6 +138,19 @@ namespace DouLuoLevelCalculator.ViewModels
             {
                 _exportCharacterConfigCommand ??= new DelegateCommand(Export);
                 return _exportCharacterConfigCommand;
+            }
+        }
+
+        private DelegateCommand? _saveCommand;
+        /// <summary>
+        /// 保存到之前导入或导出的路径
+        /// </summary>
+        public DelegateCommand SaveCommand
+        {
+            get
+            {
+                _saveCommand ??= new DelegateCommand(() => Save());
+                return _saveCommand;
             }
         }
         #endregion
@@ -277,6 +299,7 @@ namespace DouLuoLevelCalculator.ViewModels
             {
                 try
                 {
+                    CurrentProfilePath = dialog.FileName;
                     var config = CharacterConfig.Load(dialog.FileName);
                     if (config == null) throw new ApplicationException("配置文件为空！");
 
@@ -325,38 +348,60 @@ namespace DouLuoLevelCalculator.ViewModels
             dialog.Filter = "人物配置|*.xml";
             if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.FileName))
             {
-                try
-                {
-                    CharacterName = Path.GetFileNameWithoutExtension(dialog.FileName);
-                    var config = new CharacterConfig();
-                    config.InitDate = InitDate;
-                    config.InitAge = InitAge;
-                    config.InitLevel = InitLevel;
-                    config.InitCongenitalPower = NaturalSp;
-                    config.InitEffort = Effort;
+                Save(dialog.FileName);
+            }
+        }
 
-                    foreach (var level in LevelStatuses)
+        /// <summary>
+        /// 保存到之前导入的路径或导出的路径
+        /// </summary>
+        /// <param name="savePath"></param>
+        public void Save(string? savePath = null)
+        {
+            string? savePath2;
+            if (!string.IsNullOrEmpty(savePath))
+            {
+                savePath2 = savePath;
+                CurrentProfilePath = savePath;
+            }
+            else if (!string.IsNullOrEmpty(CurrentProfilePath)) savePath2 = CurrentProfilePath;
+            else
+            {
+                MessageBox.Show("请先导出！", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            try
+            {
+                CharacterName = Path.GetFileNameWithoutExtension(savePath2);
+                var config = new CharacterConfig();
+                config.InitDate = InitDate;
+                config.InitAge = InitAge;
+                config.InitLevel = InitLevel;
+                config.InitCongenitalPower = NaturalSp;
+                config.InitEffort = Effort;
+
+                foreach (var level in LevelStatuses)
+                {
+                    if (level.SoulCircle != 0 || level.ExLevel != 0 || level.Effort != 0 || level.CongenitalPower != 0 || !string.IsNullOrEmpty(level.Comments))
                     {
-                        if (level.SoulCircle != 0 || level.ExLevel != 0 || level.Effort != 0 || level.CongenitalPower != 0 || !string.IsNullOrEmpty(level.Comments))
+                        config.Levels.Add(new CharacterConfigLevel
                         {
-                            config.Levels.Add(new CharacterConfigLevel
-                            {
-                                Level = level.Level,
-                                SoulCircle = level.SoulCircle,
-                                ExLevel = level.ExLevel,
-                                Effort = level.Effort,
-                                CongenitalPower = level.CongenitalPower,
-                                Comments = level.Comments
-                            });
-                        }
+                            Level = level.Level,
+                            SoulCircle = level.SoulCircle,
+                            ExLevel = level.ExLevel,
+                            Effort = level.Effort,
+                            CongenitalPower = level.CongenitalPower,
+                            Comments = level.Comments
+                        });
                     }
+                }
 
-                    config.Save(dialog.FileName);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.ToString(), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                config.Save(savePath2);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         #endregion
