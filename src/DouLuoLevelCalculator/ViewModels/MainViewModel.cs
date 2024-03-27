@@ -309,8 +309,9 @@ namespace DouLuoLevelCalculator.ViewModels
                     InitDate = config.InitDate;
                     InitAge = config.InitAge;
                     InitLevel = config.InitLevel;
-                    NaturalSp = config.InitCongenitalPower;
                     Effort = config.InitEffort;
+                    // 防止有些人物先天魂力过低导致预计算的LevelStatuses数量不足，在下面导入数据时找不到对应的Level
+                    NaturalSp = 20;
 
                     // 创建LevelStatuses
                     Compute();
@@ -328,7 +329,8 @@ namespace DouLuoLevelCalculator.ViewModels
                         }
                     }
 
-                    // 重新计算
+                    // 恢复真实的先天魂力，重新计算
+                    NaturalSp = config.InitCongenitalPower;
                     Compute();
                 }
                 catch (Exception ex)
