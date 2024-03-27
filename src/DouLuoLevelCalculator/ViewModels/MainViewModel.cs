@@ -398,6 +398,7 @@ namespace DouLuoLevelCalculator.ViewModels
                 }
 
                 config.Save(savePath2);
+                MessageBox.Show("保存成功！", "保存配置", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
